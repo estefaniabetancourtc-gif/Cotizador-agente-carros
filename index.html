@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador Agente — Seguros Autos CL/CO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --f:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  --bg:#F7F7FA;--s1:#fff;--s2:#F2F3F7;--s3:#E8EAF0;
+  --acc:#4355E8;--acc3:#2D3EC4;--sky:#0891B2;
+  --grn:#16A85A;--amb:#D97706;--red:#DC3545;
+  --txt:#0F0F1A;--txt2:#4A4A6A;--txt3:#8888AA;
+  --brd:#E2E4ED;--brd2:#C8CADB;
+  --rad:8px;--rad2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.07);--sh2:0 4px 16px rgba(0,0,0,.12);
+}
+body{font-family:var(--f);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:20px}
+.wrap{max-width:980px;margin:0 auto}
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--brd);border-radius:var(--rad2);padding:11px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--sky));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+/* badges */
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bwarn{background:#FFF7E6;color:#B45309;border:1px solid #FDE68A}
+.bok{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+.binfo{background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE}
+/* steps */
+.steps{display:flex;gap:3px;margin-bottom:12px;background:var(--s1);border:1px solid var(--brd);border-radius:var(--rad2);padding:5px;box-shadow:var(--sh)}
+.step{flex:1;text-align:center;padding:6px 4px;font-size:11px;color:var(--txt3);border-radius:var(--rad);cursor:pointer;transition:all .15s;white-space:nowrap}
+.step:hover{background:var(--s2);color:var(--txt2)}
+.step.active{background:var(--acc);color:#fff;font-weight:500}
+.step.done{background:#ECFDF5;color:var(--grn)}
+/* cards */
+.card{background:var(--s1);border:1px solid var(--brd);border-radius:var(--rad2);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.hd{font-size:10.5px;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.hd span{flex:1}
+/* form */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-size:11px;color:var(--txt3)}
+.fld input,.fld select,.fld textarea{background:var(--s1);border:1px solid var(--brd2);border-radius:var(--rad);color:var(--txt);font-family:var(--f);font-size:13px;padding:7px 10px;width:100%;outline:none;transition:border-color .15s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(67,85,232,.1)}
+.fld input.edited{border-color:var(--amb)}
+/* alerts */
+.al{padding:9px 12px;border-radius:var(--rad);font-size:12px;margin-bottom:9px;display:flex;gap:8px;line-height:1.5}
+.al-info{background:#EEF2FF;border:1px solid #C7D2FE;color:#3730A3}
+.al-warn{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.al-err{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+.al-ok{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+/* buttons */
+.btn{font-size:12.5px;padding:7px 14px;border-radius:var(--rad);border:1px solid var(--brd2);background:var(--s1);color:var(--txt);cursor:pointer;font-family:var(--f);transition:all .15s;box-shadow:var(--sh)}
+.btn:hover{background:var(--s2)}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 6px rgba(67,85,232,.3)}
+.btn.pri:hover{background:var(--acc3)}
+.btn.ok{background:#ECFDF5;color:var(--grn);border-color:#A7F3D0}
+.btn.ok:hover{background:#D1FAE5}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.nav{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)}
+/* country */
+.cbtn{padding:5px 12px;border-radius:var(--rad);border:1px solid var(--brd2);background:var(--s1);color:var(--txt2);cursor:pointer;font-size:12px;font-family:var(--f);transition:all .15s}
+.cbtn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+/* 2-col layout */
+.layout{display:grid;grid-template-columns:1fr 340px;gap:12px;align-items:start}
+/* plan cards */
+.pc{background:var(--s1);border:1.5px solid var(--brd);border-radius:var(--rad2);padding:12px;cursor:pointer;transition:all .18s;position:relative;box-shadow:var(--sh)}
+.pc:hover{border-color:var(--acc)}
+.pc.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(67,85,232,.12)}
+.pc-badge{position:absolute;top:-1px;right:-1px;font-size:10px;padding:2px 8px;background:var(--acc);color:#fff;border-radius:0 var(--rad2) 0 var(--rad);font-weight:500}
+/* cov table */
+.ctbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.ctbl th{text-align:left;color:var(--txt3);font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:6px 8px;border-bottom:1.5px solid var(--brd);background:var(--s2)}
+.ctbl th:not(:first-child){text-align:center}
+.ctbl td{padding:6px 8px;border-bottom:1px solid var(--brd);color:var(--txt2)}
+.ctbl td:not(:first-child){text-align:center}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl tr:hover td{background:var(--s2)}
+.cvl{color:var(--txt)}
+.cok{color:var(--grn);font-weight:700}
+.cno{color:var(--brd2)}
+.cval{color:var(--acc);font-family:var(--fm);font-size:11px}
+/* deducible */
+.dg{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px}
+.db{padding:6px 4px;border-radius:var(--rad);border:1px solid var(--brd2);background:var(--s1);color:var(--txt2);cursor:pointer;font-size:12px;text-align:center;font-family:var(--f);transition:all .15s}
+.db:hover{border-color:var(--acc);color:var(--acc)}
+.db.on{border-color:var(--acc);background:#EEF2FF;color:var(--acc);font-weight:600}
+/* right panel */
+.rp{display:flex;flex-direction:column;gap:10px}
+.cbox{background:var(--s1);border:1px solid var(--brd);border-radius:var(--rad2);padding:14px;box-shadow:var(--sh)}
+.price{font-size:30px;font-weight:700;color:var(--acc);font-family:var(--fm);letter-spacing:-.02em}
+.bktbl{width:100%;font-size:12px;border-collapse:collapse;margin-top:10px}
+.bktbl td{padding:4px 0;color:var(--txt2)}
+.bktbl td:last-child{text-align:right;color:var(--txt);font-family:var(--fm)}
+.bktbl tr.tot td{border-top:1px solid var(--brd);padding-top:7px;color:var(--txt);font-weight:600;font-size:13px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.mc{background:var(--s2);border-radius:var(--rad);padding:8px 10px}
+.mc .v{font-size:13px;font-weight:600;font-family:var(--fm)}
+.mc .l{font-size:10px;color:var(--txt3);margin-top:1px}
+/* pill toggle */
+.pt{display:flex;gap:3px;background:var(--s2);border-radius:var(--rad);padding:3px;border:1px solid var(--brd)}
+.pt button{padding:5px 10px;border-radius:6px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11.5px;font-family:var(--f);transition:all .15s;white-space:nowrap}
+.pt button.on{background:var(--s1);color:var(--acc);font-weight:500;box-shadow:var(--sh)}
+/* send */
+.so{background:var(--s1);border:1.5px solid var(--brd);border-radius:var(--rad);padding:10px;cursor:pointer;transition:all .15s}
+.so:hover{border-color:var(--acc)}
+.so.on{border-color:var(--acc);background:#EEF2FF}
+/* tabs */
+.stabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:8px}
+.stab{padding:5px 12px;font-size:11.5px;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.stab.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:500}
+/* policy */
+.pi{padding:8px 12px;border-radius:var(--rad);font-size:12px;display:flex;gap:8px;margin-bottom:6px}
+.pi.ok{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+.pi.wa{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.pi.er{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+/* modal — pure in-flow overlay */
+.modal-wrap{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,15,26,.5);z-index:9999;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--brd);border-radius:var(--rad2);padding:20px;width:480px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:var(--sh2)}
+/* timeline */
+.tl{border-left:2px solid var(--brd2);padding-left:14px}
+.tli{position:relative;margin-bottom:11px;font-size:12.5px;color:var(--txt2)}
+.tli::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--s3);border:2px solid var(--brd2);position:absolute;left:-19px;top:3px}
+.tli.cur::before{background:var(--acc);border-color:var(--acc)}
+.tl-ts{font-size:11px;color:var(--txt3);margin-top:1px}
+/* misc */
+.tag{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:20px;background:#EEF2FF;color:var(--acc);margin:2px;border:1px solid #C7D2FE}
+.divider{height:1px;background:var(--brd);margin:10px 0}
+.slbl{font-size:10.5px;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:11px">
+    <div class="av">CM</div>
+    <div>
+      <div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px">
+        <span id="lead-name">Carlos Medina</span>
+        <span class="badge bwarn" id="lead-status">Abandonó en selección de plan</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--txt3);margin-top:1px">
+        +56 9 8765 4321 &nbsp;·&nbsp; c.medina@gmail.com &nbsp;·&nbsp; Lead <span style="font-family:var(--fm)">#47823</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:7px;align-items:center">
+    <button class="cbtn" id="btn-co" onclick="setCountry('CO')">&#127464;&#127476; Colombia</button>
+    <button class="cbtn on" id="btn-cl" onclick="setCountry('CL')">&#127464;&#127473; Chile</button>
+    <button class="btn" onclick="openHist()" style="font-size:12px;padding:6px 12px">Historial</button>
+  </div>
+</div>
+
+<!-- STEPS -->
+<div class="steps">
+  <div class="step done" onclick="goStep(1)">1 · Asegurado</div>
+  <div class="step done" onclick="goStep(2)">2 · Contratante</div>
+  <div class="step done" onclick="goStep(3)">3 · Vehículo</div>
+  <div class="step active" onclick="goStep(4)">4 · Plan + Cotización</div>
+  <div class="step" id="s5" onclick="goStep(5)">5 · Políticas</div>
+  <div class="step" id="s6" onclick="goStep(6)">6 · Cierre</div>
+</div>
+
+<!-- STEP 1 -->
+<div id="p1" class="hidden">
+  <div class="card">
+    <div class="hd"><span>Datos del asegurado</span><span class="badge binfo">Prellenado desde formulario digital</span></div>
+    <div class="g3" style="margin-bottom:10px">
+      <div class="fld"><label>Nombre completo</label><input value="Carlos Medina" oninput="edited(this)" id="i-nombre"></div>
+      <div class="fld"><label id="lbl-doc">RUT</label><input value="15.234.567-8" oninput="edited(this)"></div>
+      <div class="fld"><label>Fecha de nacimiento</label><input type="date" value="1989-07-14"></div>
+      <div class="fld"><label>Teléfono</label><input value="+56 9 8765 4321" id="i-tel"></div>
+      <div class="fld"><label>Email</label><input value="c.medina@gmail.com" id="i-email"></div>
+      <div class="fld"><label>Género</label><select><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+      <div class="fld"><label id="lbl-reg">Región</label><select><option>Región Metropolitana</option><option>Valparaíso</option><option>Biobío</option><option>La Araucanía</option></select></div>
+      <div class="fld"><label>Ciudad</label><input value="Santiago"></div>
+      <div class="fld hidden" id="fld-lab"><label>Situación laboral</label>
+        <select id="sel-lab"><option>Dependiente</option><option>Independiente</option><option>Jubilado/Pensionado</option><option>Desempleado</option><option>Estudiante</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><div></div><button class="btn pri" onclick="goStep(2)">Siguiente &#8594;</button></div>
+</div>
+
+<!-- STEP 2 -->
+<div id="p2" class="hidden">
+  <div class="card">
+    <div class="hd"><span>Contratante</span></div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2);margin-bottom:10px">
+      <input type="checkbox" id="chk-c" onchange="tog('cont-f',this)" checked style="width:auto"> Es el mismo asegurado
+    </label>
+    <div id="cont-f" class="hidden g3">
+      <div class="fld"><label>Nombre</label><input placeholder="Nombre contratante"></div>
+      <div class="fld"><label id="lbl-doc-c">RUT/CC</label><input placeholder="Doc. identidad"></div>
+      <div class="fld"><label>Teléfono</label><input placeholder="+56 9..."></div>
+      <div class="fld"><label>Email</label><input placeholder="email@..."></div>
+      <div class="fld"><label>Relación</label><select><option>Cónyuge</option><option>Padre/Madre</option><option>Empleador</option><option>Otro</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hd"><span>Pagador</span></div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2);margin-bottom:10px">
+      <input type="checkbox" id="chk-p" onchange="tog('pag-f',this)" checked style="width:auto"> Es el mismo asegurado/contratante
+    </label>
+    <div id="pag-f" class="hidden g3">
+      <div class="fld"><label>Nombre titular</label><input placeholder="Nombre pagador"></div>
+      <div class="fld"><label>Banco</label><select><option>Banco Estado</option><option>BCI</option><option>Santander</option><option>Scotiabank</option><option>Itaú</option><option>Bancolombia</option><option>Davivienda</option></select></div>
+      <div class="fld"><label>Medio de pago</label><select><option>Débito automático</option><option>Tarjeta crédito</option><option>PAC</option><option>Transferencia</option></select></div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(1)">&#8592; Atrás</button><button class="btn pri" onclick="goStep(3)">Siguiente &#8594;</button></div>
+</div>
+
+<!-- STEP 3 -->
+<div id="p3" class="hidden">
+  <div class="card">
+    <div class="hd"><span>Datos del vehículo</span></div>
+    <div class="g3" style="margin-bottom:10px">
+      <div class="fld"><label>Marca</label><select id="s-marca" onchange="renderCotiz()"><option>Toyota</option><option>Chevrolet</option><option selected>Suzuki</option><option>Hyundai</option><option>Kia</option><option>Renault</option><option>Mazda</option></select></div>
+      <div class="fld"><label>Modelo</label><input id="s-modelo" value="Swift"></div>
+      <div class="fld"><label>Año</label><select id="s-anio" onchange="renderCotiz()"><option>2019</option><option>2020</option><option>2021</option><option selected>2022</option><option>2023</option><option>2024</option><option>2025</option></select></div>
+      <div class="fld"><label id="lbl-pat">Patente</label><input id="s-pat" value="BLPF23" oninput="edited(this)"></div>
+      <div class="fld"><label>Uso</label><select id="s-uso" onchange="chkUso();renderCotiz()"><option selected>Particular</option><option>Comercial</option><option>Taxi/App</option></select></div>
+      <div class="fld"><label>Tipo</label><select id="s-tipo"><option>Sedán</option><option selected>Hatchback</option><option>SUV</option><option>Pickup</option><option>Van</option></select></div>
+    </div>
+    <div class="al al-warn hidden" id="alert-taxi">Uso Taxi/App requiere revisión manual — derivar a suscripción especial.</div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(2)">&#8592; Atrás</button><button class="btn pri" onclick="goStep(4)">Ver planes &#8594;</button></div>
+</div>
+
+<!-- STEP 4: PLAN + COTIZACIÓN + ENVÍO -->
+<div id="p4">
+  <div class="al al-info" style="margin-bottom:10px;font-size:12px">
+    El cliente seleccionó <strong>Plan Intermedio</strong> con deducible <strong>UF 3</strong> antes de abandonar — prellenado y editable.
+  </div>
+  <div class="layout">
+    <!-- izquierda -->
+    <div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="hd"><span>Coberturas por plan</span></div>
+        <div style="overflow-x:auto"><table class="ctbl" id="cov-table"></table></div>
+      </div>
+      <div class="card">
+        <div class="hd"><span>Selección de plan</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px" id="plans-grid"></div>
+        <div class="slbl">Deducible</div>
+        <div class="dg" id="ded-grid"></div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div>
+            <div class="slbl">Frecuencia de pago</div>
+            <div class="pt" id="ft">
+              <button class="on" onclick="setFreq('mensual',this)">Mensual</button>
+              <button onclick="setFreq('anual',this)">Anual <span style="font-size:10px;background:#D1FAE5;color:var(--grn);padding:1px 5px;border-radius:4px">&#8722;10%</span></button>
+            </div>
+          </div>
+          <div>
+            <div class="slbl">Vigencia</div>
+            <div class="pt" id="vt">
+              <button class="on" onclick="setVig(1,this)">1 año</button>
+              <button onclick="setVig(2,this)">2 años <span style="font-size:10px;background:#EEF2FF;color:var(--acc);padding:1px 5px;border-radius:4px">&#8722;5%</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- derecha -->
+    <div class="rp">
+      <div class="cbox">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="price" id="cz-price">—</div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:1px" id="cz-lbl">—</div>
+          </div>
+          <button class="btn" onclick="renderCotiz()" style="font-size:11px;padding:4px 9px">&#8635;</button>
+        </div>
+        <table class="bktbl">
+          <tr><td>Prima neta</td><td id="bk-p">—</td></tr>
+          <tr><td>Cargo plan</td><td id="bk-c">—</td></tr>
+          <tr><td id="lbl-imp">IVA (19%)</td><td id="bk-i">—</td></tr>
+          <tr class="tot"><td>Total <span id="bk-fl">mensual</span></td><td id="bk-t">—</td></tr>
+          <tr><td style="font-size:11px;color:var(--txt3)" id="lbl-alt">Total anual</td><td id="bk-a" style="font-size:11px;color:var(--txt3)">—</td></tr>
+        </table>
+        <div class="mg">
+          <div class="mc"><div class="v" id="m-d">—</div><div class="l">Deducible</div></div>
+          <div class="mc"><div class="v" id="m-p">—</div><div class="l">Plan</div></div>
+          <div class="mc"><div class="v" id="m-f">Mensual</div><div class="l">Frecuencia</div></div>
+          <div class="mc"><div class="v" id="m-v">1 año</div><div class="l">Vigencia</div></div>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:3px" id="ctags"></div>
+      </div>
+      <div class="card">
+        <div class="hd"><span>Envío al cliente</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          <div class="so on" id="so-q" onclick="setSend('cotiz')"><div style="font-size:12px;font-weight:500">Cotización PDF</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">El cliente decide luego</div></div>
+          <div class="so" id="so-p" onclick="setSend('pago')"><div style="font-size:12px;font-weight:500">Link de pago</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">Contrata ahora en línea</div></div>
+        </div>
+        <div class="fld" style="margin-bottom:8px"><label>Canal</label>
+          <select id="sel-canal" onchange="updatePreview()">
+            <option value="wa">WhatsApp (+56 9 8765 4321)</option>
+            <option value="email">Email (c.medina@gmail.com)</option>
+            <option value="sms">SMS (+56 9 8765 4321)</option>
+          </select>
+        </div>
+        <div class="stabs">
+          <div class="stab on" id="tab-wa" onclick="setTab('wa')">WhatsApp</div>
+          <div class="stab" id="tab-em" onclick="setTab('em')">Email</div>
+        </div>
+        <div id="prev-wa"><div class="fld" style="margin-bottom:7px"><textarea id="msg-wa" rows="5" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div></div>
+        <div id="prev-em" class="hidden">
+          <div class="fld" style="margin-bottom:7px"><label>Asunto</label><input id="msg-as" value="Tu cotización de seguro automotriz está lista" style="font-size:12px"></div>
+          <div class="fld" style="margin-bottom:7px"><textarea id="msg-em" rows="6" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="btn ok" onclick="enviar()" style="flex:1;font-size:12px">Confirmar envío</button>
+          <button class="btn" onclick="updatePreview()" style="font-size:12px;padding:7px 10px">&#8635;</button>
+        </div>
+        <div class="al al-ok hidden" id="conf-ok" style="margin-top:8px;font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(3)">&#8592; Vehículo</button><button class="btn pri" onclick="goStep(5)">Verificar políticas &#8594;</button></div>
+</div>
+
+<!-- STEP 5 -->
+<div id="p5" class="hidden">
+  <div class="card">
+    <div class="hd"><span>Validación de políticas de negocio</span></div>
+    <div id="pol-list"></div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(4)">&#8592; Atrás</button><button class="btn pri" id="btn-fin" onclick="goStep(6)">Finalizar &#8594;</button></div>
+</div>
+
+<!-- STEP 6 -->
+<div id="p6" class="hidden">
+  <div class="card">
+    <div class="hd"><span>Cierre</span></div>
+    <div class="al al-ok">&#10003; Cotización enviada. Lead actualizado a "Contactado".</div>
+    <div style="font-size:13px;color:var(--txt2);margin-top:8px">Puedes cerrar este ticket o registrar una nota de seguimiento.</div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(4)">&#8592; Volver al plan</button></div>
+</div>
+
+</div><!-- end wrap -->
+
+<!-- MODAL HISTORIAL — outside wrap, fixed overlay -->
+<div class="modal-wrap" id="modal-hist">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <strong style="font-size:15px">Historial del lead #47823</strong>
+      <button class="btn" id="btn-close-hist" style="padding:5px 11px;font-size:14px">&#10005;</button>
+    </div>
+    <div class="al al-warn" style="margin-bottom:12px">Abandonó en selección de plan — datos prellenados.</div>
+    <div class="tl">
+      <div class="tli"><div>Ingresó al cotizador digital</div><div class="tl-ts">Hoy 09:41</div></div>
+      <div class="tli"><div>Completó datos personales</div><div class="tl-ts">Hoy 09:43</div></div>
+      <div class="tli"><div>Completó datos del vehículo — Suzuki Swift 2022</div><div class="tl-ts">Hoy 09:45</div></div>
+      <div class="tli"><div>Llegó a selección de planes</div><div class="tl-ts">Hoy 09:46</div></div>
+      <div class="tli"><div>Seleccionó Plan Intermedio / Deducible UF 3</div><div class="tl-ts">Hoy 09:48</div></div>
+      <div class="tli cur"><div style="font-weight:600;color:var(--acc)">Abandonó sin finalizar</div><div class="tl-ts">Hoy 09:49</div></div>
+    </div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn pri" id="btn-close-hist2">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── state ──────────────────────────────────────────────
+var S={country:'CL',plan:'intermedio',ded:1,freq:'mensual',vig:1,send:'cotiz',tab:'wa'};
+
+// ── modal (wire up AFTER DOM ready) ───────────────────
+function openHist(){document.getElementById('modal-hist').classList.add('open')}
+function closeHist(){document.getElementById('modal-hist').classList.remove('open')}
+document.getElementById('btn-close-hist').addEventListener('click',closeHist);
+document.getElementById('btn-close-hist2').addEventListener('click',closeHist);
+document.getElementById('modal-hist').addEventListener('click',function(e){if(e.target===this)closeHist();});
+
+// ── data ───────────────────────────────────────────────
+var PL={
+  CL:{cur:'UF',imp:'IVA (19%)',impR:0.19,pat:'Patente',doc:'RUT',reg:'Región',
+    plans:[
+      {id:'basico',name:'Básico',tag:'RC + Robo',badge:null,tasa:.0035,cargo:.04,
+       covs:{rc:1,robo:1,inc:0,dan:0,asi:0,acc:0,rcL:'UF 400',robL:'UF 200',danL:'—'},
+       deds:['UF 1','UF 3','UF 5','UF 10']},
+      {id:'intermedio',name:'Intermedio',tag:'Todo riesgo c/deducible',badge:'Más vendido',tasa:.0054,cargo:.12,
+       covs:{rc:1,robo:1,inc:1,dan:1,asi:1,acc:0,rcL:'UF 600',robL:'UF 400',danL:'UF 300'},
+       deds:['UF 1','UF 3','UF 5','UF 8']},
+      {id:'full',name:'Full',tag:'Todo riesgo sin deducible',badge:null,tasa:.0072,cargo:.20,
+       covs:{rc:1,robo:1,inc:1,dan:1,asi:1,acc:1,rcL:'UF 800',robL:'Sin límite',danL:'Sin límite'},
+       deds:['Sin ded.','Sin ded.','Sin ded.','Sin ded.']},
+    ]},
+  CO:{cur:'SMMLV',imp:'Impuesto 4x1000',impR:.004,pat:'Placa',doc:'Cédula',reg:'Departamento',
+    plans:[
+      {id:'basico',name:'Básico',tag:'SOAT + RC ext.',badge:null,tasa:.003,cargo:.03,
+       covs:{rc:1,robo:0,inc:0,dan:0,asi:0,acc:0,rcL:'50 SMMLV',robL:'—',danL:'—'},
+       deds:['0%','5%','10%','15%']},
+      {id:'intermedio',name:'Intermedio',tag:'Todo riesgo c/deducible',badge:'Más vendido',tasa:.005,cargo:.10,
+       covs:{rc:1,robo:1,inc:1,dan:1,asi:1,acc:0,rcL:'80 SMMLV',robL:'60 SMMLV',danL:'40 SMMLV'},
+       deds:['0%','5%','10%','15%']},
+      {id:'full',name:'Full',tag:'Todo riesgo sin deducible',badge:null,tasa:.007,cargo:.18,
+       covs:{rc:1,robo:1,inc:1,dan:1,asi:1,acc:1,rcL:'100 SMMLV',robL:'Sin límite',danL:'Sin límite'},
+       deds:['0%','0%','0%','0%']},
+    ]}
+};
+var ROWS=[
+  {k:'rc',l:'Responsabilidad Civil'},{k:'rcL',l:'Límite RC',v:1},
+  {k:'robo',l:'Robo / Hurto'},{k:'robL',l:'Límite Robo',v:1},
+  {k:'inc',l:'Incendio'},{k:'dan',l:'Daños propios'},
+  {k:'danL',l:'Límite daños',v:1},{k:'asi',l:'Asistencia carretera'},{k:'acc',l:'Accidentes personales'}
+];
+
+// ── helpers ────────────────────────────────────────────
+function $(id){return document.getElementById(id)}
+function edited(el){el.classList.add('edited')}
+function tog(id,chk){$(id).classList.toggle('hidden',chk.checked)}
+function chkUso(){$('alert-taxi').classList.toggle('hidden',$('s-uso').value!=='Taxi/App')}
+
+function setCountry(c){
+  S.country=c;
+  $('btn-cl').classList.toggle('on',c==='CL');
+  $('btn-co').classList.toggle('on',c==='CO');
+  var d=PL[c];
+  $('lbl-doc').textContent=d.doc;
+  if($('lbl-doc-c'))$('lbl-doc-c').textContent=d.doc+'/CC';
+  $('lbl-reg').textContent=d.reg;
+  $('lbl-pat').textContent=d.pat;
+  $('lbl-imp').textContent=d.imp;
+  $('fld-lab').classList.toggle('hidden',c!=='CL');
+  renderAll();
+}
+
+function goStep(n){
+  if(n===5)runPol();
+  for(var i=1;i<=6;i++){
+    var p=$(('p'+i));if(p)p.classList.toggle('hidden',i!==n);
+    var s=document.querySelectorAll('.step')[i-1];
+    if(s){s.classList.remove('active','done');if(i<n)s.classList.add('done');else if(i===n)s.classList.add('active');}
+  }
+}
+
+// ── calc ───────────────────────────────────────────────
+function getBase(pl){
+  var d=PL[S.country],tasa=pl.tasa,uso=$('s-uso');
+  if(uso&&uso.value==='Comercial')tasa*=1.15;
+  return(( S.country==='CL'?280:150)*tasa+pl.cargo)*(1+d.impR);
+}
+function getTotal(base){
+  var v=S.freq==='anual'?base*12*.9:base;
+  return S.vig===2?v*.95:v;
+}
+
+// ── render ─────────────────────────────────────────────
+function renderAll(){renderPlans();renderCovTable();renderDeds();renderCotiz();updatePreview();}
+
+function renderPlans(){
+  var d=PL[S.country],pg=$('plans-grid');if(!pg)return;pg.innerHTML='';
+  d.plans.forEach(function(p){
+    var div=document.createElement('div');
+    div.className='pc'+(S.plan===p.id?' sel':'');
+    div.onclick=(function(pid){return function(){S.plan=pid;S.ded=0;renderPlans();renderDeds();renderCotiz();updatePreview();}})(p.id);
+    var t=getTotal(getBase(p));
+    div.innerHTML=(p.badge?'<div class="pc-badge">'+p.badge+'</div>':'')+
+      '<div style="font-size:13px;font-weight:600">'+p.name+'</div>'+
+      '<div style="font-size:11px;color:var(--txt3);margin-top:2px">'+p.tag+'</div>'+
+      '<div style="font-size:20px;font-weight:600;color:var(--acc);font-family:var(--fm);margin:8px 0 2px">'+d.cur+' '+t.toFixed(2)+'</div>'+
+      '<div style="font-size:10.5px;color:var(--txt3)">'+(S.freq==='mensual'?'por mes':'por año')+'</div>';
+    pg.appendChild(div);
+  });
+}
+
+function renderCovTable(){
+  var d=PL[S.country],t=$('cov-table');if(!t)return;
+  var h='<thead><tr><th>Cobertura</th>'+d.plans.map(function(p){return'<th>'+p.name+'</th>';}).join('')+'</tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    h+='<tr><td class="cvl">'+r.l+'</td>';
+    d.plans.forEach(function(p){
+      var v=p.covs[r.k];
+      h+=r.v?'<td class="cval">'+v+'</td>':'<td>'+(v?'<span class="cok">&#10003;</span>':'<span class="cno">—</span>')+'</td>';
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+function renderDeds(){
+  var d=PL[S.country],pl=d.plans.filter(function(p){return p.id===S.plan;})[0],dg=$('ded-grid');
+  if(!dg||!pl)return;dg.innerHTML='';
+  pl.deds.forEach(function(lbl,i){
+    var b=document.createElement('button');
+    b.className='db'+(S.ded===i?' on':'');
+    b.textContent=lbl;
+    b.onclick=(function(idx){return function(){S.ded=idx;renderDeds();renderPlans();renderCotiz();updatePreview();}})(i);
+    dg.appendChild(b);
+  });
+}
+
+function renderCotiz(){
+  var d=PL[S.country],pl=d.plans.filter(function(p){return p.id===S.plan;})[0];if(!pl)return;
+  var base=getBase(pl),prima=base/(1+d.impR)-pl.cargo,iva=base-prima-pl.cargo,total=getTotal(base);
+  var fl=S.freq==='mensual'?'mensual':'anual',vs=S.vig===1?'1 año':'2 años';
+  var alt=S.freq==='mensual'?(base*12*.9).toFixed(2):base.toFixed(2);
+  var altL=S.freq==='mensual'?'Total anual estimado':'Equivalente mensual';
+  function st(id,v){var e=$(id);if(e)e.textContent=v;}
+  st('cz-price',d.cur+' '+total.toFixed(2));
+  st('cz-lbl','por '+fl+(S.vig===2?' · vigencia 2 años':''));
+  st('bk-p',d.cur+' '+prima.toFixed(2));st('bk-c',d.cur+' '+pl.cargo.toFixed(2));
+  st('bk-i',d.cur+' '+iva.toFixed(2));st('bk-t',d.cur+' '+total.toFixed(2));
+  st('bk-fl',fl);st('lbl-alt',altL);st('bk-a',d.cur+' '+alt);
+  st('m-d',pl.deds[S.ded]);st('m-p',pl.name);
+  st('m-f',S.freq==='mensual'?'Mensual':'Anual');st('m-v',vs);
+  var tags=$('ctags');if(tags){tags.innerHTML='';
+    [{k:'rc',l:'RC'},{k:'robo',l:'Robo'},{k:'inc',l:'Incendio'},{k:'dan',l:'Daños propios'},{k:'asi',l:'Asistencia'},{k:'acc',l:'Acc. personales'}]
+    .forEach(function(x){if(pl.covs[x.k]){var sp=document.createElement('span');sp.className='tag';sp.textContent='&#10003; '+x.l;tags.appendChild(sp);}});
+  }
+  window._cd={cur:d.cur,pl:pl,total:total.toFixed(2),alt:alt,fl:fl,vs:vs,ded:pl.deds[S.ded]};
+  updatePreview();
+}
+
+function setFreq(v,btn){
+  S.freq=v;
+  $('ft').querySelectorAll('button').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');
+  renderPlans();renderCotiz();
+}
+function setVig(v,btn){
+  S.vig=v;
+  $('vt').querySelectorAll('button').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');
+  renderPlans();renderCotiz();
+}
+
+function runPol(){
+  var anio=parseInt($('s-anio').value),uso=$('s-uso').value,pat=$('s-pat').value.trim();
+  var rules=[
+    {l:'Vehículo no mayor a 15 años',p:anio>=(new Date().getFullYear()-15)},
+    {l:'No uso Taxi/App',p:uso!=='Taxi/App',m:'Derivar a suscripción especial'},
+    {l:'Patente/placa ingresada',p:pat.length>0},
+    {l:'Datos asegurado completos',p:true},
+    {l:'RUT/Cédula — verificar formato',p:true,w:true}
+  ];
+  if(S.country==='CL'){
+    var lab=$('sel-lab').value;
+    rules.push({l:'Situación laboral ('+lab+')',p:lab!=='Desempleado',w:lab==='Independiente',m:lab==='Desempleado'?'Requiere revisión manual':''});
+  }
+  var pl=$('pol-list');pl.innerHTML='';var blocked=false;
+  rules.forEach(function(r){
+    var div=document.createElement('div');
+    div.className='pi '+(r.p?(r.w?'wa':'ok'):'er');
+    div.innerHTML='<span>'+(r.p?(r.w?'&#9888;':'&#10003;'):'&#10005;')+'</span><span>'+r.l+(r.m?' — <em>'+r.m+'</em>':'')+'</span>';
+    pl.appendChild(div);if(!r.p)blocked=true;
+  });
+  var bf=$('btn-fin');if(bf)bf.disabled=blocked;
+}
+
+function setSend(t){
+  S.send=t;
+  $('so-q').classList.toggle('on',t==='cotiz');
+  $('so-p').classList.toggle('on',t==='pago');
+  updatePreview();
+}
+function setTab(t){
+  S.tab=t;
+  $('prev-wa').classList.toggle('hidden',t!=='wa');
+  $('prev-em').classList.toggle('hidden',t!=='em');
+  $('tab-wa').classList.toggle('on',t==='wa');
+  $('tab-em').classList.toggle('on',t==='em');
+}
+function updatePreview(){
+  var c=window._cd||{cur:'UF',pl:{name:'Intermedio',tag:'Todo riesgo'},total:'1.85',fl:'mensual',vs:'1 año',ded:'UF 3'};
+  var n=($('i-nombre')&&$('i-nombre').value)||'Cliente';
+  var link='https://pago.seguros.cl/cotiz/47823';
+  var wa=S.send==='cotiz'
+    ?'Hola '+n+' \u{1F44B}\n\nTe comparto tu cotización de seguro automotriz:\n\n\u2022 Plan: '+c.pl.name+' ('+c.pl.tag+')\n\u2022 Deducible: '+c.ded+'\n\u2022 Prima '+c.fl+': '+c.cur+' '+c.total+'\n\u2022 Vigencia: '+c.vs+'\n\nVálida 30 días. \u00BFTienes alguna duda?'
+    :'Hola '+n+' \u{1F44B}\n\nTu cotización está lista. Para contratar:\n'+link+'\n\n\u2022 '+c.pl.name+' — '+c.cur+' '+c.total+'/'+c.fl+'\n\u2022 Vigencia: '+c.vs+'\n\nEl link vence en 24 horas.';
+  var em=S.send==='cotiz'
+    ?'Estimado/a '+n+',\n\nAdjunto su cotización de seguro automotriz:\n\nPlan: '+c.pl.name+' — '+c.pl.tag+'\nDeducible: '+c.ded+'\nPrima '+c.fl+': '+c.cur+' '+c.total+'\nVigencia: '+c.vs+'\n\nVálida por 30 días.\n\nSaludos,\nEquipo de Seguros'
+    :'Estimado/a '+n+',\n\nSu cotización está lista:\n'+link+'\n\nPlan: '+c.pl.name+' — '+c.cur+' '+c.total+'/'+c.fl+'\nVigencia: '+c.vs+'\n\nEnlace válido 24 horas.\n\nSaludos,\nEquipo de Seguros';
+  var wa_el=$('msg-wa');if(wa_el)wa_el.value=wa;
+  var em_el=$('msg-em');if(em_el)em_el.value=em;
+}
+function enviar(){
+  var canal=$('sel-canal'),ct=canal.options[canal.selectedIndex].text;
+  var tipo=S.send==='cotiz'?'Cotización':'Link de pago';
+  var box=$('conf-ok');box.textContent='\u2713 '+tipo+' enviado por '+ct+'.';box.classList.remove('hidden');
+  $('lead-status').textContent='Contactado';$('lead-status').className='badge bok';
+}
+
+// ── init ───────────────────────────────────────────────
+setCountry('CL');
+goStep(4);
+</script>
+</body>
+</html>
