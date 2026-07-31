@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador Agente — Seguro Auto CL/CO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --f:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  --bg:#F5F6FA;--s1:#fff;--s2:#F2F3F8;--s3:#E8EAF2;
+  --acc:#3D50E0;--acc2:#5567F0;--acc3:#2A3BB8;
+  --grn:#15A356;--amb:#D97706;--red:#DC3545;--sky:#0891B2;
+  --txt:#0D0D1A;--txt2:#45456A;--txt3:#8585A8;
+  --brd:#E0E2EE;--brd2:#C5C7DC;
+  --r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 4px 16px rgba(0,0,0,.10);
+}
+body{font-family:var(--f);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:16px}
+.wrap{max-width:1020px;margin:0 auto}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--brd);border-radius:var(--r2);padding:10px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--sky));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bwarn{background:#FFF7E6;color:#B45309;border:1px solid #FDE68A}
+.bok{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+.binfo{background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE}
+
+/* STEPS */
+.steps{display:flex;gap:3px;margin-bottom:10px;background:var(--s1);border:1px solid var(--brd);border-radius:var(--r2);padding:5px;box-shadow:var(--sh)}
+.step{flex:1;text-align:center;padding:6px 3px;font-size:11px;color:var(--txt3);border-radius:var(--r);cursor:pointer;transition:all .15s;white-space:nowrap}
+.step:hover{background:var(--s2);color:var(--txt2)}
+.step.active{background:var(--acc);color:#fff;font-weight:500}
+.step.done{background:#ECFDF5;color:var(--grn)}
+.step.skip{opacity:.4;cursor:default;font-style:italic}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--brd);border-radius:var(--r2);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.hd{font-size:10.5px;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.hd .hm{flex:1}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+
+/* FORM */
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-size:11px;color:var(--txt3)}
+.req{color:var(--red);margin-left:1px}
+.fld input,.fld select,.fld textarea{
+  background:var(--s1);border:1px solid var(--brd2);border-radius:var(--r);
+  color:var(--txt);font-family:var(--f);font-size:13px;padding:7px 10px;width:100%;
+  outline:none;transition:border-color .15s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(61,80,224,.09)}
+.fld input.edited{border-color:var(--amb)}
+
+/* ALERTS */
+.al{padding:9px 12px;border-radius:var(--r);font-size:12px;margin-bottom:9px;display:flex;gap:8px;line-height:1.5}
+.al-info{background:#EEF2FF;border:1px solid #C7D2FE;color:#3730A3}
+.al-warn{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.al-err{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+.al-ok{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+
+/* BUTTONS */
+.btn{font-size:12.5px;padding:7px 14px;border-radius:var(--r);border:1px solid var(--brd2);background:var(--s1);color:var(--txt);cursor:pointer;font-family:var(--f);transition:all .15s;box-shadow:var(--sh)}
+.btn:hover{background:var(--s2)}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 2px 6px rgba(61,80,224,.25)}
+.btn.pri:hover{background:var(--acc3)}
+.btn.ok{background:#ECFDF5;color:var(--grn);border-color:#A7F3D0}
+.btn.ok:hover{background:#D1FAE5}
+.btn.sm{font-size:11.5px;padding:5px 11px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.nav{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)}
+
+/* COUNTRY */
+.cbtn{padding:5px 12px;border-radius:var(--r);border:1px solid var(--brd2);background:var(--s1);color:var(--txt2);cursor:pointer;font-size:12px;font-family:var(--f);transition:all .15s}
+.cbtn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+
+/* VEHICLE TABS */
+.vtabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:14px}
+.vtab{padding:7px 16px;font-size:12.5px;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.vtab.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:500}
+
+/* 2-COL LAYOUT */
+.layout3{display:grid;grid-template-columns:1fr 340px;gap:12px;align-items:start}
+
+/* PLAN CARDS */
+.plans3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.pc{background:var(--s1);border:1.5px solid var(--brd);border-radius:var(--r2);padding:12px;cursor:pointer;transition:all .18s;position:relative}
+.pc:hover{border-color:var(--acc2);box-shadow:var(--sh2)}
+.pc.on{border-color:var(--acc);box-shadow:0 0 0 3px rgba(61,80,224,.1)}
+.pcb{position:absolute;top:-1px;right:-1px;font-size:10px;padding:2px 8px;background:var(--acc);color:#fff;border-radius:0 var(--r2) 0 var(--r);font-weight:500}
+.pc-deds{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:8px}
+.db{padding:5px 2px;border-radius:6px;border:1px solid var(--brd2);background:var(--s2);color:var(--txt2);cursor:pointer;font-size:11px;text-align:center;font-family:var(--fm);transition:all .15s}
+.db:hover{border-color:var(--acc);color:var(--acc)}
+.db.on{border-color:var(--acc);background:#EEF2FF;color:var(--acc);font-weight:600}
+
+/* COVERAGE TABLE + TOOLTIPS */
+.ctbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.ctbl th{text-align:left;color:var(--txt3);font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:6px 8px;border-bottom:1.5px solid var(--brd);background:var(--s2)}
+.ctbl th:not(:first-child){text-align:center}
+.ctbl td{padding:6px 8px;border-bottom:1px solid var(--brd);color:var(--txt2)}
+.ctbl td:not(:first-child){text-align:center}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl tr:hover td{background:var(--s2)}
+.cok{color:var(--grn);font-weight:700}
+.cno{color:var(--brd2)}
+.cval{color:var(--acc);font-family:var(--fm);font-size:11px}
+.tip{position:relative;display:inline-flex;align-items:center;gap:5px}
+.tic{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--s3);color:var(--txt3);font-size:9px;cursor:help;flex-shrink:0;font-style:normal;border:1px solid var(--brd2)}
+.tbox{display:none;position:absolute;left:0;bottom:22px;background:#1C1F2E;color:#fff;border-radius:8px;padding:8px 12px;font-size:11px;width:230px;z-index:200;line-height:1.55;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none}
+.tbox::after{content:'';position:absolute;top:100%;left:10px;border:5px solid transparent;border-top-color:#1C1F2E}
+.tip:hover .tbox{display:block}
+
+/* RIGHT PANEL */
+.rp{display:flex;flex-direction:column;gap:10px}
+.cbox{background:var(--s1);border:1px solid var(--brd);border-radius:var(--r2);padding:14px;box-shadow:var(--sh)}
+.price{font-size:28px;font-weight:700;color:var(--acc);font-family:var(--fm);letter-spacing:-.02em}
+.price-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+.bktbl{width:100%;font-size:12px;border-collapse:collapse;margin-top:10px}
+.bktbl td{padding:3.5px 0;color:var(--txt2)}
+.bktbl td:last-child{text-align:right;color:var(--txt);font-family:var(--fm)}
+.bktbl tr.tot td{border-top:1px solid var(--brd);padding-top:7px;font-weight:600;font-size:13px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.mc{background:var(--s2);border-radius:var(--r);padding:8px 10px}
+.mc .v{font-size:13px;font-weight:600;font-family:var(--fm)}
+.mc .l{font-size:10px;color:var(--txt3);margin-top:1px}
+
+/* UF CONVERTER */
+.uf-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--brd);flex-wrap:wrap}
+.uf-row label{font-size:11px;color:var(--txt3);white-space:nowrap}
+.uf-row input{width:100px;font-size:12px;padding:5px 8px;border:1px solid var(--brd2);border-radius:6px;font-family:var(--fm);background:var(--s2);color:var(--txt);outline:none}
+.uf-row input:focus{border-color:var(--acc)}
+.uf-equiv{font-size:12px;color:var(--txt2);font-family:var(--fm)}
+
+/* PILL TOGGLE */
+.pt{display:flex;gap:3px;background:var(--s2);border-radius:var(--r);padding:3px;border:1px solid var(--brd)}
+.pt button{padding:5px 10px;border-radius:6px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11.5px;font-family:var(--f);transition:all .15s;white-space:nowrap}
+.pt button.on{background:var(--s1);color:var(--acc);font-weight:500;box-shadow:var(--sh)}
+
+/* SEND */
+.so{background:var(--s1);border:1.5px solid var(--brd);border-radius:var(--r);padding:10px;cursor:pointer;transition:all .15s}
+.so:hover{border-color:var(--acc2)}
+.so.on{border-color:var(--acc);background:#EEF2FF}
+.stabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:8px}
+.stab{padding:5px 12px;font-size:11.5px;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.stab.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:500}
+
+/* UPLOAD */
+.upload-box{border:2px dashed var(--brd2);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--s2)}
+.upload-box:hover{border-color:var(--acc);background:#EEF2FF}
+.upload-box.done{border-color:var(--grn);background:#ECFDF5;border-style:solid}
+
+/* RESUMEN TABLE */
+.rtbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.rtbl td{padding:7px 0;border-bottom:1px solid var(--brd);color:var(--txt2);vertical-align:top}
+.rtbl td:first-child{color:var(--txt3);width:130px;font-size:11.5px}
+.rtbl tr:last-child td{border-bottom:none}
+
+.tag{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:20px;background:#EEF2FF;color:var(--acc);margin:2px;border:1px solid #C7D2FE}
+.div{height:1px;background:var(--brd);margin:10px 0}
+.slbl{font-size:10.5px;font-weight:600;color:var(--txt3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.hidden{display:none}
+
+/* MODAL */
+.modal-wrap{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(13,13,26,.5);z-index:9999;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--brd);border-radius:var(--r2);padding:20px;width:480px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:var(--sh2)}
+.tl{border-left:2px solid var(--brd2);padding-left:14px}
+.tli{position:relative;margin-bottom:11px;font-size:12.5px;color:var(--txt2)}
+.tli::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--s3);border:2px solid var(--brd2);position:absolute;left:-19px;top:3px}
+.tli.cur::before{background:var(--acc);border-color:var(--acc)}
+.tl-ts{font-size:11px;color:var(--txt3);margin-top:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:11px">
+    <div class="av">CM</div>
+    <div>
+      <div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px">
+        <span id="lead-name">Carlos Medina</span>
+        <span class="badge bwarn" id="lead-status">Abandon&#243; en Paso 3 &#8212; Selecci&#243;n de plan</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--txt3);margin-top:1px">
+        +56 9 8765 4321 &nbsp;&#183;&nbsp; c.medina@gmail.com &nbsp;&#183;&nbsp; Lead <span style="font-family:var(--fm)">#47823</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:7px;align-items:center">
+    <button class="cbtn on" id="btn-cl" onclick="setCountry('CL')">&#127464;&#127473; Chile</button>
+    <button class="cbtn" id="btn-co" onclick="setCountry('CO')">&#127464;&#127476; Colombia</button>
+    <button class="btn sm" onclick="openModal()">Historial</button>
+  </div>
+</div>
+
+<!-- STEPS -->
+<div class="steps">
+  <div class="step done" onclick="goStep(1)">1 &#183; Inicio</div>
+  <div class="step done" onclick="goStep(2)">2 &#183; Veh&#237;culo</div>
+  <div class="step active" onclick="goStep(3)">3 &#183; Plan</div>
+  <div class="step" onclick="goStep(4)">4 &#183; Contratante</div>
+  <div class="step skip" id="s5nav" onclick="goStep(5)">5 &#183; Auto nuevo</div>
+  <div class="step" onclick="goStep(6)">6 &#183; Resumen</div>
+</div>
+
+<!-- ===== STEP 1 ===== -->
+<div id="p1" class="hidden">
+  <div class="al al-info">El cliente complet&#243; estos datos en el e-commerce antes de abandonar.</div>
+  <div class="card">
+    <div class="hd"><span class="hm">Datos de inicio</span><span class="badge binfo">Prellenado</span></div>
+    <div class="g3" style="margin-bottom:10px">
+      <div class="fld"><label>RUT del due&#241;o del veh&#237;culo <span class="req">*</span></label><input id="f-rut" value="15.234.567-8" oninput="edited(this)"></div>
+      <div class="fld"><label>Celular <span class="req">*</span></label><input id="f-cel" value="+56 9 8765 4321" oninput="edited(this)"></div>
+      <div class="fld"><label>Correo electr&#243;nico <span class="req">*</span></label><input id="f-email" value="c.medina@gmail.com" oninput="edited(this)"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2)">
+      <input type="checkbox" checked style="width:auto"> Acepta tratamiento de datos personales
+    </label>
+  </div>
+  <div class="nav"><div></div><button class="btn pri" onclick="goStep(2)">Siguiente &#8594;</button></div>
+</div>
+
+<!-- ===== STEP 2 ===== -->
+<div id="p2" class="hidden">
+  <div class="card">
+    <div class="hd"><span class="hm">Datos del veh&#237;culo y del due&#241;o</span></div>
+    <div class="vtabs">
+      <div class="vtab on" id="vt-a" onclick="setVTab('a')">Tu auto</div>
+      <div class="vtab" id="vt-d" onclick="setVTab('d')">El due&#241;o</div>
+    </div>
+
+    <!-- Tab: Tu auto -->
+    <div id="tab-a">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="fld" style="flex:1"><label>Patente <span class="req">*</span></label>
+          <input id="f-pat" value="KZLX23" placeholder="Ej: ABCD12" oninput="edited(this)" style="text-transform:uppercase;font-family:var(--fm)">
+        </div>
+        <button class="btn" onclick="autocompletePat()" style="align-self:flex-end">Buscar &#128269;</button>
+      </div>
+      <div id="pat-msg" class="hidden"></div>
+      <div class="g3" style="margin-bottom:10px">
+        <div class="fld"><label>Marca <span class="req">*</span></label><input id="f-marca" value="Chevrolet" oninput="edited(this)"></div>
+        <div class="fld"><label>Modelo <span class="req">*</span></label><input id="f-modelo" value="Tracker" oninput="edited(this)"></div>
+        <div class="fld"><label>A&#241;o <span class="req">*</span></label><input id="f-anio" value="2021" oninput="edited(this)"></div>
+        <div class="fld"><label>Tipo de veh&#237;culo <span class="req">*</span></label>
+          <select id="f-tipo"><option selected>SUV</option><option>Sed&#225;n</option><option>Hatchback</option><option>Pickup</option><option>Van</option></select>
+        </div>
+        <div class="fld"><label>Color</label><input id="f-color" value="Blanco" oninput="edited(this)"></div>
+        <div class="fld"><label>&#191;Nuevo o usado? <span class="req">*</span></label>
+          <select id="f-nuevo" onchange="updateNuevo()"><option value="usado">Usado</option><option value="nuevo">Nuevo (&#8804; 72 hrs)</option></select>
+        </div>
+        <div class="fld"><label>N&#250;mero de motor</label><input id="f-motor" placeholder="Opcional"></div>
+        <div class="fld"><label>N&#250;mero de chasis</label><input id="f-chasis" placeholder="Opcional"></div>
+      </div>
+      <div class="al al-warn hidden" id="alert-nuevo" style="font-size:12px">&#9888; Auto nuevo: deber&#225; adjuntar la factura o gu&#237;a de despacho en el Paso 5.</div>
+    </div>
+
+    <!-- Tab: El dueño -->
+    <div id="tab-d" class="hidden">
+      <div class="al al-info" style="margin-bottom:12px;font-size:12px">Datos del due&#241;o del veh&#237;culo (asegurado). No necesariamente es quien llama.</div>
+      <div class="g3" style="margin-bottom:10px">
+        <div class="fld"><label>RUT <span class="req">*</span></label><input value="15.234.567-8" oninput="edited(this)"></div>
+        <div class="fld"><label>Nombres <span class="req">*</span></label><input id="f-nombres" value="Carlos" oninput="edited(this)"></div>
+        <div class="fld"><label>Apellidos <span class="req">*</span></label><input id="f-apellidos" value="Medina Rojas" oninput="edited(this)"></div>
+        <div class="fld"><label>Fecha de nacimiento <span class="req">*</span></label><input type="date" value="1989-07-14"></div>
+        <div class="fld"><label>Situaci&#243;n laboral <span class="req">*</span></label>
+          <select><option selected>Trabajador dependiente</option><option>Trabajador independiente</option><option>Jubilado / Pensionado</option><option>Desempleado</option><option>Estudiante</option></select>
+        </div>
+        <div class="fld"><label>Regi&#243;n <span class="req">*</span></label>
+          <select><option selected>Regi&#243;n Metropolitana</option><option>Valpara&#237;so</option><option>Biob&#237;o</option><option>La Araucan&#237;a</option></select>
+        </div>
+        <div class="fld"><label>Comuna <span class="req">*</span></label><input value="Providencia" oninput="edited(this)"></div>
+      </div>
+      <div class="al al-warn" style="font-size:12px"><span>&#9888;</span><span>El cliente declara ser el due&#241;o del veh&#237;culo o tener documento que lo acredita, y que el veh&#237;culo no ha tenido p&#233;rdida total.</span></div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(1)">&#8592; Atr&#225;s</button><button class="btn pri" onclick="goStep(3)">Ver planes &#8594;</button></div>
+</div>
+
+<!-- ===== STEP 3 ===== -->
+<div id="p3">
+  <div class="al al-info" style="margin-bottom:10px;font-size:12px">
+    Cliente abandon&#243; aqu&#237; &#8212; ten&#237;a seleccionado <strong>Plan Total</strong> con deducible <strong>10 UF</strong>. Prellenado y editable.
+  </div>
+  <div class="layout3">
+    <!-- IZQUIERDA -->
+    <div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="hd"><span class="hm">Coberturas por plan</span></div>
+        <div style="overflow-x:auto"><table class="ctbl" id="cov-table"></table></div>
+      </div>
+      <div class="card">
+        <div class="hd">
+          <span class="hm">Selecciona un plan</span>
+          <div class="pt" id="ft">
+            <button class="on" onclick="setFreq('mensual',this)">Mensual</button>
+            <button onclick="setFreq('anual',this)">Anual <span style="font-size:10px;background:#D1FAE5;color:var(--grn);padding:1px 5px;border-radius:4px">-8%</span></button>
+          </div>
+        </div>
+        <div class="plans3" id="plans-grid"></div>
+      </div>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="rp">
+      <div class="cbox">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="price" id="cz-price">&#8212;</div>
+            <div class="price-sub" id="cz-lbl">Selecciona un plan</div>
+          </div>
+          <button class="btn sm" onclick="renderCotiz()">&#8635;</button>
+        </div>
+        <table class="bktbl">
+          <tr><td>Plan</td><td id="bk-plan">&#8212;</td></tr>
+          <tr><td>Deducible</td><td id="bk-ded">&#8212;</td></tr>
+          <tr><td>Frecuencia</td><td id="bk-freq">&#8212;</td></tr>
+        </table>
+        <div class="uf-row">
+          <label>UF hoy $</label>
+          <input type="number" id="uf-val" value="37800" onchange="renderCotiz();syncUF2()" placeholder="37800">
+          <span class="uf-equiv" id="uf-equiv">= UF 0.00</span>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:3px" id="ctags"></div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><span class="hm">Enviar al cliente</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          <div class="so on" id="so-q" onclick="setSend('cotiz')"><div style="font-size:12px;font-weight:500">Cotizaci&#243;n</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">Decide luego</div></div>
+          <div class="so" id="so-p" onclick="setSend('pago')"><div style="font-size:12px;font-weight:500">Link de pago</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">Contrata ahora</div></div>
+        </div>
+        <div class="fld" style="margin-bottom:8px"><label>Canal</label>
+          <select id="sel-canal" onchange="updatePreview()">
+            <option value="wa">WhatsApp (+56 9 8765 4321)</option>
+            <option value="email">Email (c.medina@gmail.com)</option>
+            <option value="sms">SMS</option>
+          </select>
+        </div>
+        <div class="g2" style="margin-bottom:8px">
+          <div class="fld"><label>Email env&#237;o &#9998;</label><input id="send-email" value="c.medina@gmail.com" oninput="updatePreview()"></div>
+          <div class="fld"><label>Celular env&#237;o &#9998;</label><input id="send-cel" value="+56 9 8765 4321" oninput="updatePreview()"></div>
+        </div>
+        <div class="stabs">
+          <div class="stab on" id="tab-wa" onclick="setMsgTab('wa')">WhatsApp</div>
+          <div class="stab" id="tab-em" onclick="setMsgTab('em')">Email</div>
+        </div>
+        <div id="prev-wa"><div class="fld" style="margin-bottom:7px"><textarea id="msg-wa" rows="5" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div></div>
+        <div id="prev-em" class="hidden">
+          <div class="fld" style="margin-bottom:6px"><label>Asunto</label><input id="msg-as" value="Tu cotizaci&#243;n de seguro automotriz est&#225; lista" style="font-size:12px"></div>
+          <div class="fld" style="margin-bottom:7px"><textarea id="msg-em" rows="5" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn ok" onclick="enviar('conf-ok')" style="flex:1;font-size:12px">Confirmar env&#237;o</button>
+          <button class="btn sm" onclick="updatePreview()">&#8635;</button>
+        </div>
+        <div class="al al-ok hidden" id="conf-ok" style="margin-top:8px;font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(2)">&#8592; Veh&#237;culo</button><button class="btn pri" onclick="goStep(4)">Datos del contratante &#8594;</button></div>
+</div>
+
+<!-- ===== STEP 4 ===== -->
+<div id="p4" class="hidden">
+  <div class="al al-info" style="font-size:12px">Estos datos se recogen al final, cuando el cliente confirma que quiere contratar.</div>
+  <div class="card">
+    <div class="hd"><span class="hm">Datos completos del due&#241;o del veh&#237;culo</span></div>
+    <div class="g3" style="margin-bottom:10px">
+      <div class="fld"><label>Nombres <span class="req">*</span></label><input value="Carlos" oninput="edited(this)"></div>
+      <div class="fld"><label>Apellidos <span class="req">*</span></label><input value="Medina Rojas" oninput="edited(this)"></div>
+      <div class="fld"><label>Direcci&#243;n <span class="req">*</span></label><input value="Av. Providencia 1234, Depto 805" oninput="edited(this)"></div>
+      <div class="fld"><label>Regi&#243;n <span class="req">*</span></label>
+        <select><option selected>Regi&#243;n Metropolitana</option><option>Valpara&#237;so</option><option>Biob&#237;o</option></select>
+      </div>
+      <div class="fld"><label>Comuna <span class="req">*</span></label><input value="Providencia" oninput="edited(this)"></div>
+      <div class="fld"><label>Correo electr&#243;nico <span class="req">*</span></label><input value="c.medina@gmail.com" oninput="edited(this)"></div>
+      <div class="fld"><label>Celular <span class="req">*</span></label><input value="+56 9 8765 4321" oninput="edited(this)"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><span class="hm">&#191;Qui&#233;n pagar&#225; el seguro?</span></div>
+    <div style="display:flex;gap:16px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="radio" name="paga" value="dueno" checked onchange="togglePagador()" style="width:auto"> El due&#241;o del veh&#237;culo</label>
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="radio" name="paga" value="otro" onchange="togglePagador()" style="width:auto"> Otra persona</label>
+    </div>
+    <div id="pagador-fields" class="hidden">
+      <div class="al al-info" style="margin-bottom:10px;font-size:12px">El pagador financia las primas. Puede ser diferente del due&#241;o del veh&#237;culo.</div>
+      <div class="g3">
+        <div class="fld"><label>RUT pagador <span class="req">*</span></label><input placeholder="12.345.678-9"></div>
+        <div class="fld"><label>Nombre pagador <span class="req">*</span></label><input placeholder="Nombre completo"></div>
+        <div class="fld"><label>Relaci&#243;n con el due&#241;o</label>
+          <select><option>C&#243;nyuge</option><option>Padre/Madre</option><option>Empleador</option><option>Arrendador</option><option>Otro</option></select>
+        </div>
+        <div class="fld"><label>Banco <span class="req">*</span></label>
+          <select><option>Banco Estado</option><option>BCI</option><option>Santander</option><option>Scotiabank</option><option>It&#225;u</option></select>
+        </div>
+        <div class="fld"><label>Medio de pago <span class="req">*</span></label>
+          <select><option>D&#233;bito autom&#225;tico</option><option>Tarjeta cr&#233;dito</option><option>PAC</option><option>Transferencia</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(3)">&#8592; Plan</button><button class="btn pri" onclick="goNext4()">Siguiente &#8594;</button></div>
+</div>
+
+<!-- ===== STEP 5 (auto nuevo) ===== -->
+<div id="p5" class="hidden">
+  <div class="card">
+    <div class="hd"><span class="hm">Documentaci&#243;n &#8212; auto nuevo</span></div>
+    <div class="al al-warn" style="margin-bottom:12px;font-size:12px">Un auto se considera nuevo si fue adquirido en las <strong>&#250;ltimas 72 horas</strong>.</div>
+    <div class="g3" style="margin-bottom:14px">
+      <div class="fld"><label>Tipo de documento <span class="req">*</span></label>
+        <select><option>Factura de compra</option><option>Gu&#237;a de despacho</option></select>
+      </div>
+      <div class="fld"><label>Fecha del documento <span class="req">*</span></label><input type="date"></div>
+    </div>
+    <div class="fld" style="margin-bottom:6px"><label>Adjuntar factura / Gu&#237;a de despacho <span class="req">*</span></label></div>
+    <div class="upload-box" id="upload-box" onclick="simUpload()">
+      <div style="font-size:28px;margin-bottom:6px">&#128196;</div>
+      <div style="font-size:13px;font-weight:500;color:var(--txt2)">Haz clic para adjuntar</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:3px">PDF, JPG o PNG &#183; M&#225;x. 5 MB</div>
+    </div>
+    <div class="al al-ok hidden" id="upload-ok" style="margin-top:8px;font-size:12px">&#10003; Archivo adjuntado correctamente.</div>
+  </div>
+  <div class="nav"><button class="btn" onclick="goStep(4)">&#8592; Contratante</button><button class="btn pri" onclick="goStep(6)">Ver resumen &#8594;</button></div>
+</div>
+
+<!-- ===== STEP 6 ===== -->
+<div id="p6" class="hidden">
+  <div class="layout3">
+    <div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="hd"><span class="hm">Resumen del seguro</span></div>
+        <table class="rtbl">
+          <tr><td>Asegurado</td><td><strong id="r-nombre">Carlos Medina Rojas</strong></td></tr>
+          <tr><td>Veh&#237;culo</td><td id="r-auto">Chevrolet Tracker 2021</td></tr>
+          <tr><td>Patente</td><td id="r-pat" style="font-family:var(--fm)">KZLX23</td></tr>
+          <tr><td>Plan</td><td id="r-plan">&#8212;</td></tr>
+          <tr><td>Deducible</td><td id="r-ded">&#8212;</td></tr>
+          <tr><td>Frecuencia</td><td id="r-freq">&#8212;</td></tr>
+          <tr><td>Vigencia</td><td>1 a&#241;o desde emisi&#243;n de p&#243;liza</td></tr>
+        </table>
+        <div class="div"></div>
+        <div class="slbl">Coberturas incluidas</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px" id="r-tags"></div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="hm">Precio final</span></div>
+        <div class="price" id="r-price">&#8212;</div>
+        <div class="price-sub" id="r-price-sub">&#8212;</div>
+        <div class="uf-row">
+          <label>UF hoy $</label>
+          <input type="number" id="uf-val2" value="37800" onchange="syncUF1()" placeholder="37800">
+          <span class="uf-equiv" id="uf-equiv2">= UF 0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp">
+      <div class="card">
+        <div class="hd"><span class="hm">Datos de contacto para env&#237;o</span></div>
+        <div class="al al-info" style="margin-bottom:10px;font-size:12px">Edita email o celular sin volver a cotizar.</div>
+        <div class="fld" style="margin-bottom:8px"><label>Email <span class="req">*</span></label><input id="r-email" value="c.medina@gmail.com" oninput="updatePreview()"></div>
+        <div class="fld" style="margin-bottom:12px"><label>Celular <span class="req">*</span></label><input id="r-cel" value="+56 9 8765 4321" oninput="updatePreview()"></div>
+        <div class="slbl">Tipo de env&#237;o</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          <div class="so on" id="r-so-q" onclick="setSend('cotiz')"><div style="font-size:12px;font-weight:500">Cotizaci&#243;n</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">El cliente decide luego</div></div>
+          <div class="so" id="r-so-p" onclick="setSend('pago')"><div style="font-size:12px;font-weight:500">Link de pago</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">Contrata ahora</div></div>
+        </div>
+        <div class="fld" style="margin-bottom:8px"><label>Canal</label>
+          <select id="r-canal" onchange="updatePreview()"><option value="wa">WhatsApp</option><option value="email">Email</option><option value="sms">SMS</option></select>
+        </div>
+        <div class="stabs">
+          <div class="stab on" id="r-tab-wa" onclick="setRTab('wa')">WhatsApp</div>
+          <div class="stab" id="r-tab-em" onclick="setRTab('em')">Email</div>
+        </div>
+        <div id="r-prev-wa"><div class="fld" style="margin-bottom:7px"><textarea id="r-msg-wa" rows="5" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div></div>
+        <div id="r-prev-em" class="hidden">
+          <div class="fld" style="margin-bottom:6px"><label>Asunto</label><input id="r-msg-as" value="Tu cotizaci&#243;n de seguro automotriz est&#225; lista" style="font-size:12px"></div>
+          <div class="fld" style="margin-bottom:7px"><textarea id="r-msg-em" rows="5" style="font-size:12px;line-height:1.55;resize:vertical"></textarea></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn ok" onclick="enviar('r-conf-ok')" style="flex:1;font-size:12px">&#10003; Confirmar env&#237;o final</button>
+          <button class="btn sm" onclick="updatePreview()">&#8635;</button>
+        </div>
+        <div class="al al-ok hidden" id="r-conf-ok" style="margin-top:8px;font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn" id="btn-b6" onclick="goBack6()">&#8592; Atr&#225;s</button><div></div></div>
+</div>
+
+</div><!-- end wrap -->
+
+<!-- MODAL -->
+<div class="modal-wrap" id="modal-hist">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <strong style="font-size:15px">Historial del lead #47823</strong>
+      <button class="btn sm" id="btn-close-m">&#10005;</button>
+    </div>
+    <div class="al al-warn" style="margin-bottom:12px;font-size:12px">El cliente abandon&#243; en el Paso 3 durante la selecci&#243;n de plan.</div>
+    <div class="tl">
+      <div class="tli"><div>Ingres&#243; al cotizador digital</div><div class="tl-ts">Hoy 10:14</div></div>
+      <div class="tli"><div>Complet&#243; RUT, celular y correo</div><div class="tl-ts">Hoy 10:15</div></div>
+      <div class="tli"><div>Confirm&#243; datos del veh&#237;culo &#8212; Chevrolet Tracker 2021</div><div class="tl-ts">Hoy 10:17</div></div>
+      <div class="tli"><div>Lleg&#243; a selecci&#243;n de planes</div><div class="tl-ts">Hoy 10:18</div></div>
+      <div class="tli"><div>Seleccion&#243; Plan Total / Deducible 10 UF</div><div class="tl-ts">Hoy 10:19</div></div>
+      <div class="tli cur"><div style="font-weight:600;color:var(--acc)">Abandon&#243; sin finalizar la compra</div><div class="tl-ts">Hoy 10:20</div></div>
+    </div>
+    <div style="margin-top:16px;text-align:right"><button class="btn pri sm" id="btn-close-m2">Cerrar</button></div>
+  </div>
+</div>
+
+<script>
+var S={country:'CL',plan:'total',ded:3,freq:'mensual',send:'cotiz',tab:'wa',rtab:'wa',nuevo:false};
+
+// modal
+function openModal(){document.getElementById('modal-hist').classList.add('open')}
+function closeModal(){document.getElementById('modal-hist').classList.remove('open')}
+document.getElementById('btn-close-m').addEventListener('click',closeModal);
+document.getElementById('btn-close-m2').addEventListener('click',closeModal);
+document.getElementById('modal-hist').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// data
+var TIPS={
+  danos:'Cubre da&#241;os al veh&#237;culo por colisi&#243;n, volcamiento o accidente. P&#233;rdida total: indemnizaci&#243;n seg&#250;n valor comercial a la fecha del siniestro.',
+  actos:'Cubre da&#241;os causados intencionalmente por terceros: rayados, rompimiento de vidrios, vandalismo y otros riesgos varios.',
+  granizo:'Cubre da&#241;os por fen&#243;menos naturales (granizo, sismo, inundaci&#243;n, viento) y sociales (huelga, terrorismo).',
+  robo:'Cubre el robo o hurto total del veh&#237;culo y su uso por terceros sin autorizaci&#243;n del asegurado.',
+  ind0km:'Si el veh&#237;culo sufre p&#233;rdida total en el primer a&#241;o, la indemnizaci&#243;n es por el valor 0km. Solo planes Total y Full.',
+  asist:'Grúa, auxilio de llanta, bater&#237;a y combustible en carretera. El nivel var&#237;a seg&#250;n el plan.',
+  personas:'Gastos m&#233;dicos, invalidez y muerte accidental del conductor y acompa&#241;antes dentro del veh&#237;culo.',
+  rc:'Cubre da&#241;os materiales y lesiones a terceros en accidentes donde el asegurado sea responsable.'
+};
+var ROWS=[
+  {k:'danos',l:'Da&#241;os parciales y p&#233;rdida total'},
+  {k:'actos',l:'Actos maliciosos y riesgos varios'},
+  {k:'granizo',l:'Granizo, huelga, terrorismo, sismo'},
+  {k:'robo',l:'Robo, hurto, uso no autorizado'},
+  {k:'ind0km',l:'Indemnizaci&#243;n 0km'},
+  {k:'asist',l:'Asistencias',txt:true},
+  {k:'personas',l:'Coberturas a personas',txt:true},
+  {k:'rc',l:'Responsabilidad civil a terceros'}
+];
+var PLANES=[
+  {id:'esencial',name:'Esencial',badge:null,priceM:47000,priceA:508000,
+   covs:{danos:true,actos:true,granizo:true,robo:true,ind0km:false,asist:'B&#225;sica',personas:'B&#225;sica',rc:true},
+   deds:['3 UF','5 UF','10 UF','15 UF']},
+  {id:'total',name:'Total',badge:'M&#225;s vendido',priceM:64000,priceA:693000,
+   covs:{danos:true,actos:true,granizo:true,robo:true,ind0km:true,asist:'Full',personas:'Completa',rc:true},
+   deds:['3 UF','5 UF','8 UF','10 UF']},
+  {id:'full',name:'Full',badge:null,priceM:80000,priceA:864000,
+   covs:{danos:true,actos:true,granizo:true,robo:true,ind0km:true,asist:'Ilimitada',personas:'Premium',rc:true},
+   deds:['0 UF','3 UF','5 UF','10 UF']}
+];
+var PATDB={
+  'KZLX23':{marca:'Chevrolet',modelo:'Tracker',anio:'2021',tipo:'SUV',color:'Blanco'},
+  'BLPF23':{marca:'Suzuki',modelo:'Swift',anio:'2022',tipo:'Hatchback',color:'Rojo'},
+  'ABCD12':{marca:'Toyota',modelo:'Corolla',anio:'2020',tipo:'Sed&#225;n',color:'Gris'},
+  'TEST99':{marca:'Hyundai',modelo:'Tucson',anio:'2023',tipo:'SUV',color:'Negro'}
+};
+
+function $(id){return document.getElementById(id)}
+function edited(el){el.classList.add('edited')}
+function fmt(n){return '$'+n.toLocaleString('es-CL')}
+function getUF(){return parseFloat($('uf-val').value)||37800}
+function getUF2(){return parseFloat($('uf-val2').value)||37800}
+function getPrice(){var pl=PLANES.filter(function(p){return p.id===S.plan;})[0];if(!pl)return 0;return S.freq==='mensual'?pl.priceM:pl.priceA;}
+
+function setCountry(c){
+  S.country=c;
+  $('btn-cl').classList.toggle('on',c==='CL');
+  $('btn-co').classList.toggle('on',c==='CO');
+  renderAll();
+}
+
+function goStep(n){
+  if(n===5&&!S.nuevo){goStep(6);return;}
+  for(var i=1;i<=6;i++){
+    var p=$('p'+i);if(p)p.classList.toggle('hidden',i!==n);
+    var s=document.querySelectorAll('.step')[i-1];
+    if(s){s.classList.remove('active','done');if(i<n)s.classList.add('done');else if(i===n)s.classList.add('active');}
+  }
+  var s5=$('s5nav');if(s5){s5.classList.toggle('skip',!S.nuevo);}
+  if(n===3)renderAll();
+  if(n===6)renderResumen();
+}
+function goNext4(){if(S.nuevo)goStep(5);else goStep(6);}
+function goBack6(){if(S.nuevo)goStep(5);else goStep(4);}
+
+function setVTab(t){
+  $('tab-a').classList.toggle('hidden',t!=='a');
+  $('tab-d').classList.toggle('hidden',t!=='d');
+  $('vt-a').classList.toggle('on',t==='a');
+  $('vt-d').classList.toggle('on',t==='d');
+}
+
+function autocompletePat(){
+  var pat=($('f-pat').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  var msg=$('pat-msg');
+  var d=PATDB[pat];
+  if(d){
+    $('f-marca').value=d.marca;$('f-modelo').value=d.modelo;
+    $('f-anio').value=d.anio;$('f-color').value=d.color;$('f-tipo').value=d.tipo;
+    msg.className='al al-ok';msg.innerHTML='&#10003; Datos encontrados &#8212; revisa y confirma.';
+  }else{
+    msg.className='al al-warn';msg.innerHTML='&#9888; Patente no encontrada &#8212; ingresa los datos manualmente.';
+  }
+  msg.classList.remove('hidden');
+  setTimeout(function(){msg.classList.add('hidden');},3500);
+}
+
+function updateNuevo(){
+  S.nuevo=$('f-nuevo').value==='nuevo';
+  $('alert-nuevo').classList.toggle('hidden',!S.nuevo);
+  var s5=$('s5nav');if(s5)s5.classList.toggle('skip',!S.nuevo);
+}
+function togglePagador(){
+  var radios=document.querySelectorAll('input[name="paga"]');
+  var otro=false;radios.forEach(function(r){if(r.value==='otro'&&r.checked)otro=true;});
+  $('pagador-fields').classList.toggle('hidden',!otro);
+}
+function simUpload(){
+  var b=$('upload-box');
+  b.classList.add('done');
+  b.innerHTML='<div style="font-size:28px;margin-bottom:6px">&#10003;</div><div style="font-size:13px;font-weight:500;color:var(--grn)">Factura01.pdf adjuntada</div><div style="font-size:11px;color:var(--txt3);margin-top:3px">Haz clic para cambiar</div>';
+  $('upload-ok').classList.remove('hidden');
+}
+
+function renderAll(){renderCovTable();renderPlans();renderCotiz();updatePreview();}
+
+function renderCovTable(){
+  var t=$('cov-table');if(!t)return;
+  var h='<thead><tr><th>Cobertura</th>';
+  PLANES.forEach(function(p){h+='<th>'+p.name+'</th>';});
+  h+='</tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    h+='<tr><td><div class="tip"><span>'+r.l+'</span><i class="tic">i</i><div class="tbox">'+(TIPS[r.k]||r.l)+'</div></div></td>';
+    PLANES.forEach(function(p){
+      var v=p.covs[r.k];
+      if(r.txt){h+='<td class="cval">'+v+'</td>';}
+      else{h+='<td>'+(v?'<span class="cok">&#10003;</span>':'<span class="cno">&#8212;</span>')+'</td>';}
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+function renderPlans(){
+  var pg=$('plans-grid');if(!pg)return;pg.innerHTML='';
+  PLANES.forEach(function(p){
+    var div=document.createElement('div');
+    div.className='pc'+(S.plan===p.id?' on':'');
+    var price=S.freq==='mensual'?p.priceM:p.priceA;
+    var ufP=(price/getUF()).toFixed(2);
+    div.innerHTML=(p.badge?'<div class="pcb">'+p.badge+'</div>':'')+
+      '<div style="font-size:13px;font-weight:600">'+p.name+'</div>'+
+      '<div style="font-size:11px;color:var(--txt3);margin-top:2px">'+(S.freq==='mensual'?'Mensual':'Anual')+'</div>'+
+      '<div style="font-size:19px;font-weight:700;color:var(--acc);font-family:var(--fm);margin:8px 0 1px">'+fmt(price)+'</div>'+
+      '<div style="font-size:10px;color:var(--txt3);font-family:var(--fm)">UF '+ufP+'</div>'+
+      '<div class="slbl" style="margin-top:10px;margin-bottom:5px">Deducible</div>'+
+      '<div class="pc-deds" id="dd-'+p.id+'"></div>';
+    div.onclick=(function(pid){return function(e){if(e.target.classList.contains('db'))return;S.plan=pid;S.ded=0;renderPlans();renderCotiz();updatePreview();};})(p.id);
+    pg.appendChild(div);
+    var dg=div.querySelector('.pc-deds');
+    p.deds.forEach(function(lbl,i){
+      var b=document.createElement('button');
+      b.className='db'+(S.plan===p.id&&S.ded===i?' on':'');
+      b.textContent=lbl;
+      b.onclick=(function(pid,idx){return function(e){e.stopPropagation();S.plan=pid;S.ded=idx;renderPlans();renderCotiz();updatePreview();};})(p.id,i);
+      dg.appendChild(b);
+    });
+  });
+}
+
+function renderCotiz(){
+  var pl=PLANES.filter(function(p){return p.id===S.plan;})[0];if(!pl)return;
+  var price=S.freq==='mensual'?pl.priceM:pl.priceA;
+  var ufP=(price/getUF()).toFixed(2);
+  var fl=S.freq==='mensual'?'mensual':'anual';
+  function st(id,v){var e=$(id);if(e)e.textContent=v;}
+  st('cz-price',fmt(price));
+  st('cz-lbl','Plan '+pl.name+' &#8212; '+fl);
+  st('uf-equiv','= UF '+ufP);
+  st('bk-plan',pl.name);
+  st('bk-ded',pl.deds[S.ded]||pl.deds[0]);
+  st('bk-freq',S.freq==='mensual'?'Mensual':'Anual');
+  var tags=$('ctags');if(tags){
+    tags.innerHTML='';
+    var cl={danos:'Da&#241;os/P&#233;rdida total',actos:'Actos maliciosos',granizo:'Granizo/Sismo',robo:'Robo/Hurto',ind0km:'Indemnizaci&#243;n 0km',rc:'RC Terceros'};
+    Object.keys(cl).forEach(function(k){if(pl.covs[k]){var sp=document.createElement('span');sp.className='tag';sp.innerHTML='&#10003; '+cl[k];tags.appendChild(sp);}});
+  }
+  window._cd={pl:pl,price:price,ufP:ufP,fl:fl,ded:pl.deds[S.ded]||pl.deds[0]};
+  updatePreview();
+}
+
+function syncUF2(){var v=($('uf-val')&&$('uf-val').value)||37800;var u2=$('uf-val2');if(u2)u2.value=v;renderResumen();}
+function syncUF1(){var v=($('uf-val2')&&$('uf-val2').value)||37800;var u1=$('uf-val');if(u1)u1.value=v;renderCotiz();}
+
+function renderResumen(){
+  var pl=PLANES.filter(function(p){return p.id===S.plan;})[0];if(!pl)return;
+  var price=S.freq==='mensual'?pl.priceM:pl.priceA;
+  var ufP=(price/getUF2()).toFixed(2);
+  var fl=S.freq==='mensual'?'mensual':'anual';
+  var marca=$('f-marca')?$('f-marca').value:'Chevrolet';
+  var modelo=$('f-modelo')?$('f-modelo').value:'Tracker';
+  var anio=$('f-anio')?$('f-anio').value:'2021';
+  var nom=($('f-nombres')?$('f-nombres').value:'Carlos')+' '+($('f-apellidos')?$('f-apellidos').value:'Medina Rojas');
+  function st(id,v){var e=$(id);if(e)e.textContent=v;}
+  st('r-nombre',nom.trim());
+  st('r-auto',marca+' '+modelo+' '+anio);
+  st('r-pat',$('f-pat')?$('f-pat').value.toUpperCase():'KZLX23');
+  st('r-plan',pl.name);
+  st('r-ded',pl.deds[S.ded]||pl.deds[0]);
+  st('r-freq',S.freq==='mensual'?'Mensual':'Anual');
+  st('r-price',fmt(price));
+  st('r-price-sub','por '+fl+' &#8212; UF '+ufP);
+  if($('uf-equiv2'))$('uf-equiv2').textContent='= UF '+ufP;
+  var rt=$('r-tags');if(rt){
+    rt.innerHTML='';
+    var cl2={danos:'Da&#241;os/P&#233;rdida total',actos:'Actos maliciosos',granizo:'Granizo/Sismo',robo:'Robo/Hurto',ind0km:'Indemnizaci&#243;n 0km',rc:'RC Terceros'};
+    cl2['asist']='Asistencias: '+pl.covs.asist;cl2['personas']='Cob. personas: '+pl.covs.personas;
+    Object.keys(cl2).forEach(function(k){if(pl.covs[k]){var sp=document.createElement('span');sp.className='tag';sp.innerHTML='&#10003; '+cl2[k];rt.appendChild(sp);}});
+  }
+  if($('r-so-q'))$('r-so-q').classList.toggle('on',S.send==='cotiz');
+  if($('r-so-p'))$('r-so-p').classList.toggle('on',S.send==='pago');
+  window._cd={pl:pl,price:price,ufP:ufP,fl:fl,ded:pl.deds[S.ded]||pl.deds[0]};
+  updatePreview();
+}
+
+function setFreq(v,btn){
+  S.freq=v;
+  $('ft').querySelectorAll('button').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');
+  renderPlans();renderCotiz();
+}
+function setSend(t){
+  S.send=t;
+  ['so-q','so-p','r-so-q','r-so-p'].forEach(function(id){var e=$(id);if(e)e.classList.remove('on');});
+  if(t==='cotiz'){if($('so-q'))$('so-q').classList.add('on');if($('r-so-q'))$('r-so-q').classList.add('on');}
+  else{if($('so-p'))$('so-p').classList.add('on');if($('r-so-p'))$('r-so-p').classList.add('on');}
+  updatePreview();
+}
+function setMsgTab(t){
+  S.tab=t;
+  $('prev-wa').classList.toggle('hidden',t!=='wa');$('prev-em').classList.toggle('hidden',t!=='em');
+  $('tab-wa').classList.toggle('on',t==='wa');$('tab-em').classList.toggle('on',t==='em');
+}
+function setRTab(t){
+  S.rtab=t;
+  $('r-prev-wa').classList.toggle('hidden',t!=='wa');$('r-prev-em').classList.toggle('hidden',t!=='em');
+  $('r-tab-wa').classList.toggle('on',t==='wa');$('r-tab-em').classList.toggle('on',t==='em');
+}
+
+function updatePreview(){
+  var c=window._cd||{pl:{name:'Total',covs:{asist:'Full'}},price:693000,ufP:'18.33',fl:'mensual',ded:'10 UF'};
+  var nom=($('f-nombres')&&$('f-nombres').value)||'Cliente';
+  var pnombre=nom.split(' ')[0]||'Cliente';
+  var link='https://seguros.sura.cl/pago/47823';
+  var wa=S.send==='cotiz'
+    ?'Hola '+pnombre+' \uD83D\uDC4B\n\nTe comparto tu cotizaci\u00F3n de seguro automotriz:\n\n\u2022 Plan: '+c.pl.name+'\n\u2022 Deducible: '+c.ded+'\n\u2022 Prima '+c.fl+': '+fmt(c.price)+' (UF '+c.ufP+')\n\nV\u00E1lida por 30 d\u00EDas. \u00BFTienes alguna pregunta?'
+    :'Hola '+pnombre+' \uD83D\uDC4B\n\nTu cotizaci\u00F3n est\u00E1 lista. Para contratar ahora:\n'+link+'\n\n\u2022 Plan: '+c.pl.name+' \u2014 '+fmt(c.price)+'/'+c.fl+'\n\nEl link vence en 24 horas.';
+  var em=S.send==='cotiz'
+    ?'Estimado/a '+nom+',\n\nAdjunto su cotizaci\u00F3n de seguro automotriz:\n\nPlan: '+c.pl.name+'\nDeducible: '+c.ded+'\nPrima '+c.fl+': '+fmt(c.price)+' (UF '+c.ufP+')\n\nV\u00E1lida 30 d\u00EDas.\n\nSaludos,\nEquipo Seguros SURA'
+    :'Estimado/a '+nom+',\n\nSu cotizaci\u00F3n est\u00E1 lista:\n'+link+'\n\nPlan: '+c.pl.name+' \u2014 '+fmt(c.price)+'/'+c.fl+'\n\nEnlace v\u00E1lido 24 horas.\n\nSaludos,\nEquipo Seguros SURA';
+  // decode unicode
+  wa=wa.replace(/\u([\dA-F]{4})/gi,function(m,cc){return String.fromCharCode(parseInt(cc,16));}).replace(/\uD83D\uDC4B/g,'\uD83D\uDC4B');
+  em=em.replace(/\u([\dA-F]{4})/gi,function(m,cc){return String.fromCharCode(parseInt(cc,16));});
+  var ids=[['msg-wa',wa],['msg-em',em],['r-msg-wa',wa],['r-msg-em',em]];
+  ids.forEach(function(pair){var e=$(pair[0]);if(e)e.value=pair[1];});
+}
+
+function enviar(confId){
+  var box=$(confId);if(!box)return;
+  box.innerHTML='&#10003; '+(S.send==='cotiz'?'Cotizaci&#243;n':'Link de pago')+' enviado correctamente.';
+  box.classList.remove('hidden');
+  $('lead-status').textContent='Contactado';
+  $('lead-status').className='badge bok';
+}
+
+// init
+setCountry('CL');
+goStep(3);
+</script>
+</body>
+</html>
